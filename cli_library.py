@@ -1,7 +1,7 @@
-import inspect
-from typing import get_type_hints
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import NestedCompleter
+import inspect
+import argparse
 
 # this set up the structure of the decorator for what we expect the developer to write
 def cli_command(command_name, subcommands=None):
@@ -27,7 +27,7 @@ def register_commands(module):
             commands[obj._cli_command] = obj
             # Store a dictionary of all of the subcommands registered to the top level command
             completer_dict[obj._cli_command] = obj._cli_subcommands
-        # use inspect to rip signature and type
+                    # use inspect to rip signature and type
         for command in commands: 
             signature = inspect.signature(commands[command])
             print("Parameters:")
@@ -36,7 +36,6 @@ def register_commands(module):
                 print(f"    kind: {param.kind}")
                 print(f"    default: {param.default}")
                 print(f"    annotation: {param.annotation}")
-    
     # NestedCompleter takes in a dictionary. We are dynamically creating this dict making it super portable. Returns the list of top level commands along with the dynamically created subcommands for tab completion
     return commands, NestedCompleter.from_nested_dict(completer_dict)
 
@@ -65,3 +64,34 @@ def run_cli(commands, completer):
                 print("Unknown command")
         except KeyboardInterrupt:
             break
+
+def build_parser(commands, parser):
+    """Builds the parser from the command dictionaries provided"""
+
+    parser = argparse.ArgumentParser(description="Main parser for the tool")
+
+    subparsers = parser.add_subparsers(dest="command", help="Subcommands")
+
+    # Subparser for "add" command
+    add_parser = subparsers.add_parser("add", help="Add a new item")
+    add_parser.add_argument("name", type=str, help="Name of the item to add")
+
+    # Subparser for "remove" command
+    remove_parser = subparsers.add_parser("remove", help="Remove an item")
+    remove_parser.add_argument("id", type=int, help="ID of the item to remove")
+
+    args = parser.parse_args()
+
+    if args.command == "add":
+        print(f"Adding item with name: {args.name}")
+    elif args.command == "remove":
+        print(f"Removing item with ID: {args.id}")
+    else:
+        parser.print_help()
+
+
+
+    for command in commands:
+        new_command = subparsers.add_parser(command[0], help="TODO: How do we populate this?")
+            for parameters in command:
+                new_command.add_argument()
