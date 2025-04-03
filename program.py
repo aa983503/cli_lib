@@ -11,7 +11,7 @@ def print_custom_hello():
     print(f"Hello {number} {text}")
 
 @cli_library.cli_command("connect", subcommands={"ip": None, "port": None})
-def connect():
+def connect(hoopla, ip="127.0.0.1", port=1337):
     # ip = input("Enter IP address: ")
     # port = input("Enter port: ")
     print(f"Connecting to {ip}:{port}")

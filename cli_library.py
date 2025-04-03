@@ -17,6 +17,10 @@ def register_commands(module):
         obj = getattr(module, name)
         # Essentially saying take all of the functions in our program and if this function has the decorator, add it to our dictionary
         if callable(obj) and hasattr(obj, "_cli_command"):
+
+            # This is just a proof of concept on grabbing the argument to a function
+            function_args = obj.__code__.co_varnames[:obj.__code__.co_argcount]
+            print(function_args)
             # Store a list of all of the top level commands
             commands[obj._cli_command] = obj
             # Store a dictionary of all of the subcommands registered to the top level command
