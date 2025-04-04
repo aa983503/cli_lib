@@ -51,9 +51,11 @@ class Cli_Lib:
         # NestedCompleter takes in a dictionary. We are dynamically creating this dict making it super portable. Returns the list of top level commands along with the dynamically created subcommands for tab completion
         return commands, NestedCompleter.from_nested_dict(completer_dict)
 
-    def run_cli(commands, completer):
+    def run_cli(self, commands, completer):
         """Runs a simple CLI using prompt_toolkit with enforced subcommands."""
         # Begin the cli loop
+
+        
         while True:
             try:
                 user_input = prompt("cli> ", completer=completer)
@@ -69,7 +71,8 @@ class Cli_Lib:
                     # if expected_subcommands and len(parts) < 3:
                     #     print(f"Error: Missing subcommands. Expected: {', '.join(expected_subcommands.keys())}")
                     #     continue
-                    commands[command]()
+                    args = self.parser[command].parse_args()
+                    commands[command](args)
                 elif command == "exit":
                     break
                 else:
