@@ -1,10 +1,25 @@
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.completion import Completer, Completion
+import inspect
+import argparse
 
 class DynamicCommandCompleter(Completer):
     def __init__(self, commands):
         self.commands = commands
+        self.parser = {}
+
+    def build_parser(self, commands):
+        """Builds the parser from the command dictionaries provided"""
+
+        #subparsers = parser.add_subparsers(dest="command", help="Subcommands")
+
+        for command in commands:
+            parser = argparse.ArgumentParser(description=command)
+            signature = inspect.signature(commands[command])
+            for name, param in signature.parameters.items():
+                parser.add_argument(f"--{name}", type=param.annotation, default=param.default, help="TODO: How do we populate this?")
+            self.parser[command] = parser
 
     def get_completions(self, document, complete_event):
         text = document.text_before_cursor
@@ -66,7 +81,7 @@ def cli_command(command_name, subcommands=None):
         return func
     return decorator
 
-def register_commands(module):
+def register_commands(self, module):
     """Finds and registers functions with the @cli_command decorator and sets up tab completion."""
     commands = {}
     for name in dir(module):
@@ -79,6 +94,8 @@ def register_commands(module):
             print(function_args)
             # Store a list of all of the top level commands
             commands[obj._cli_command] = obj
+    
+    self.build_parser(commands)
     return commands
 
 def run_cli(commands):
@@ -110,7 +127,8 @@ def run_cli(commands):
                         break
 
                 if set(args.keys()) == set(subcommands.keys()):
-                    func(**args)
+                    args = self.parser[command].parse_args()
+                    func(args)
                 else:
                     print(f"Missing subcommands: {', '.join(set(subcommands) - set(args))}")
             else:
