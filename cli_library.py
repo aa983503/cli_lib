@@ -1,6 +1,9 @@
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit import PromptSession
+
 import build_parser
 
 
@@ -85,9 +88,11 @@ def run_cli(commands):
     parser = build_parser.BuildParser()
     parser.build_parser(commands)
 
+    session = PromptSession()
+
     while True:
         try:
-            user_input = prompt("cli> ", completer=completer)
+            user_input = session.prompt("cli> ", completer=completer, auto_suggest=AutoSuggestFromHistory())
             parts = user_input.strip().split()
             if not parts:
                 continue
