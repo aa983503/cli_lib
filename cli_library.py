@@ -99,7 +99,7 @@ def register_commands(self, module):
     return commands
 
 
-def run_cli(self, commands, completer):
+def run_cli(self, commands):
     completer = DynamicCommandCompleter(commands)
 
     while True:
