@@ -98,7 +98,8 @@ def register_commands(self, module):
     self.build_parser(commands)
     return commands
 
-def run_cli(commands):
+
+def run_cli(self, commands, completer):
     completer = DynamicCommandCompleter(commands)
 
     while True:
