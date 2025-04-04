@@ -48,7 +48,7 @@ class DynamicCommandCompleter(Completer):
         # 🧠 Determine if currently typing a subcommand key
         is_typing_key = (
             len(parts) == 1
-            or (len(parts) > 1 and (len(parts) % 2 == 1 or parts[-1] not in subcommands))
+            or (len(parts) > 1 and (parts[-1] not in subcommands))
         )
 
         if is_typing_key:
