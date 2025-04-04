@@ -33,11 +33,7 @@ class DynamicCommandCompleter(Completer):
         subcommands = func._cli_subcommands or {}
 
         # Track used keys
-        provided_keys = set()
-        for part in parts:
-            if part in subcommands:
-                provided_keys.add(part)
-
+        provided_keys = {part for part in parts if part in subcommands}
         remaining_keys = {k for k in subcommands if k not in provided_keys}
         prefix = word_before_cursor or ""
 
