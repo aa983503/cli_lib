@@ -22,20 +22,20 @@ def register_commands(module):
 
             # This is just a proof of concept on grabbing the argument to a function
             function_args = obj.__code__.co_varnames[:obj.__code__.co_argcount]
-            print(function_args)
+            print(f"{obj} {function_args}")
             # Store a list of all of the top level commands
             commands[obj._cli_command] = obj
             # Store a dictionary of all of the subcommands registered to the top level command
             completer_dict[obj._cli_command] = obj._cli_subcommands
         # use inspect to rip signature and type
-        for command in commands: 
-            signature = inspect.signature(commands[command])
-            print("Parameters:")
-            for name, param in signature.parameters.items():
-                print(f"  {name}:")
-                print(f"    kind: {param.kind}")
-                print(f"    default: {param.default}")
-                print(f"    annotation: {param.annotation}")
+    for command in commands: 
+        signature = inspect.signature(commands[command])
+        print(f"{command} Parameters:")
+        for name, param in signature.parameters.items():
+            print(f"  {name}:")
+            print(f"    kind: {param.kind}")
+            print(f"    default: {param.default}")
+            print(f"    annotation: {param.annotation}")
     
     # NestedCompleter takes in a dictionary. We are dynamically creating this dict making it super portable. Returns the list of top level commands along with the dynamically created subcommands for tab completion
     return commands, NestedCompleter.from_nested_dict(completer_dict)
