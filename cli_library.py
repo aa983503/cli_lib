@@ -1,4 +1,5 @@
 from prompt_toolkit import prompt
+from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.completion import Completer, Completion
 
@@ -69,9 +70,10 @@ def register_commands(module):
 def run_cli(commands):
     completer = DynamicCommandCompleter(commands)
 
+    session = PromptSession()
     while True:
         try:
-            user_input = prompt("cli> ", completer=completer)
+            user_input = session.prompt("cli> ", completer=completer)
             parts = user_input.strip().split()
             if not parts:
                 continue
