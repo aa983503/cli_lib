@@ -1,25 +1,12 @@
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.completion import Completer, Completion
-import inspect
-import argparse
+import build_parser
+
 
 class DynamicCommandCompleter(Completer):
     def __init__(self, commands):
         self.commands = commands
-        self.parser = {}
-
-    def build_parser(self, commands):
-        """Builds the parser from the command dictionaries provided"""
-
-        #subparsers = parser.add_subparsers(dest="command", help="Subcommands")
-
-        for command in commands:
-            parser = argparse.ArgumentParser(description=command)
-            signature = inspect.signature(commands[command])
-            for name, param in signature.parameters.items():
-                parser.add_argument(f"--{name}", type=param.annotation, default=param.default, help="TODO: How do we populate this?")
-            self.parser[command] = parser
 
     def get_completions(self, document, complete_event):
         text = document.text_before_cursor
@@ -71,9 +58,6 @@ class DynamicCommandCompleter(Completer):
                 if key.startswith(prefix):
                     yield Completion(key, start_position=-len(prefix))
 
-
-
-# this set up the structure of the decorator for what we expect the developer to write
 def cli_command(command_name, subcommands=None):
     def decorator(func):
         func._cli_command = command_name
@@ -81,7 +65,7 @@ def cli_command(command_name, subcommands=None):
         return func
     return decorator
 
-def register_commands(self, module):
+def register_commands(module):
     """Finds and registers functions with the @cli_command decorator and sets up tab completion."""
     commands = {}
     for name in dir(module):
@@ -91,16 +75,15 @@ def register_commands(self, module):
 
             # This is just a proof of concept on grabbing the argument to a function
             function_args = obj.__code__.co_varnames[:obj.__code__.co_argcount]
-            print(function_args)
             # Store a list of all of the top level commands
             commands[obj._cli_command] = obj
     
-    self.build_parser(commands)
     return commands
 
-
-def run_cli(self, commands):
+def run_cli(commands):
     completer = DynamicCommandCompleter(commands)
+    parser = build_parser.BuildParser()
+    parser.build_parser(commands)
 
     while True:
         try:
@@ -116,22 +99,23 @@ def run_cli(self, commands):
             if command in commands:
                 func = commands[command]
                 subcommands = func._cli_subcommands
-                args = {}
+                args = []
                 i = 1
                 while i < len(parts):
                     key = parts[i]
                     if key in subcommands and i + 1 < len(parts):
-                        args[key] = parts[i + 1]
+                        args.append(f"--{key}")
+                        args.append(parts[i + 1])
                         i += 2
                     else:
                         print(f"Missing or unknown argument at position {i}: {parts[i]}")
                         break
 
-                if set(args.keys()) == set(subcommands.keys()):
-                    args = self.parser[command].parse_args()
-                    func(args)
-                else:
-                    print(f"Missing subcommands: {', '.join(set(subcommands) - set(args))}")
+                # if set(args.keys()) == set(subcommands.keys()):
+                args = parser.parser[command].parse_args(args)
+                func(**(vars(args)))
+                # else:
+                #     print(f"Missing subcommands: {', '.join(set(subcommands) - set(args))}")
             else:
                 print("Unknown command")
 
