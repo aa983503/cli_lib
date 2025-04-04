@@ -24,10 +24,25 @@ class CustomCompleter(Completer):
             # Exclude already entered subcommands
             command = tokens[0]
             entered = set(tokens[1:])  # Subcommands already entered
+
             if command in self.commands:
                 for sub in self.commands[command]:
-                    if sub not in entered:
+                    last_token = tokens[-1]
+                    partials = [
+                        x
+                        for x in self.commands.keys()
+                        if x.startswith(last_token) and last_token != command
+                    ]
+
+                    if len(partials) > 0:
+                        for sub in partials:
+                            yield Completion(sub)
+                    elif sub not in entered:
                         yield Completion(sub)
+            else:
+                command = tokens[-1]
+                for sub in (x for x in self.commands.keys() if x.startswith(command)):
+                    yield Completion(sub)
 
     def get_keys(self):
         return self.commands.keys()
