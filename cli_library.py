@@ -2,6 +2,7 @@ from prompt_toolkit import prompt
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.completion import Completer, Completion
 
+
 class DynamicCommandCompleter(Completer):
     def __init__(self, commands):
         self.commands = commands
@@ -33,38 +34,29 @@ class DynamicCommandCompleter(Completer):
 
         # Track used keys
         provided_keys = set()
-        i = 1
-        while i < len(parts) - 1:
-            key = parts[i]
-            if key in subcommands:
-                provided_keys.add(key)
-                i += 2
-            else:
-                i += 1
+        for part in parts:
+            if part in subcommands:
+                provided_keys.add(part)
 
         remaining_keys = {k for k in subcommands if k not in provided_keys}
         prefix = word_before_cursor or ""
 
-        # 🧠 Determine if currently typing a subcommand key
-        is_typing_key = (
-            len(parts) == 1
-            or (len(parts) > 1 and (parts[-1] not in subcommands))
-        )
-
-        if is_typing_key:
-            for key in remaining_keys:
-                if key.startswith(prefix):
-                    yield Completion(key, start_position=-len(prefix))
-
+        for key in remaining_keys:
+            if key.startswith(prefix):
+                yield Completion(key, start_position=-len(prefix))
 
 
 # this set up the structure of the decorator for what we expect the developer to write
 def cli_command(command_name, subcommands=None):
     def decorator(func):
         func._cli_command = command_name
-        func._cli_subcommands = subcommands or {}  # Store subcommand structure associated with the command
+        func._cli_subcommands = (
+            subcommands or {}
+        )  # Store subcommand structure associated with the command
         return func
+
     return decorator
+
 
 def register_commands(module):
     """Finds and registers functions with the @cli_command decorator and sets up tab completion."""
@@ -73,13 +65,10 @@ def register_commands(module):
         obj = getattr(module, name)
         # Essentially saying take all of the functions in our program and if this function has the decorator, add it to our dictionary
         if callable(obj) and hasattr(obj, "_cli_command"):
-
-            # This is just a proof of concept on grabbing the argument to a function
-            function_args = obj.__code__.co_varnames[:obj.__code__.co_argcount]
-            print(function_args)
             # Store a list of all of the top level commands
             commands[obj._cli_command] = obj
     return commands
+
 
 def run_cli(commands):
     completer = DynamicCommandCompleter(commands)
@@ -106,17 +95,19 @@ def run_cli(commands):
                         args[key] = parts[i + 1]
                         i += 2
                     else:
-                        print(f"Missing or unknown argument at position {i}: {parts[i]}")
+                        print(
+                            f"Missing or unknown argument at position {i}: {parts[i]}"
+                        )
                         break
 
                 if set(args.keys()) == set(subcommands.keys()):
                     func(**args)
                 else:
-                    print(f"Missing subcommands: {', '.join(set(subcommands) - set(args))}")
+                    print(
+                        f"Missing subcommands: {', '.join(set(subcommands) - set(args))}"
+                    )
             else:
                 print("Unknown command")
 
         except KeyboardInterrupt:
             break
-
-
